@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en-us" dir="ltr">
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+  
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-W13NS42YR9"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-W13NS42YR9');
+</script>
+  <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Beyond the Contract, Part 1 : The Hack That Didn’t Exploit a Smart-Contract Bug | VALKYRI</title>
+
+<meta name="description" content="Case study of the Ronin Network hack and the theft of 173,600 ETH and 25.5M USDC roughly $540 million at the moment of the attack">
+
+
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+<link rel="icon" type="image/png" sizes="64x64" href="/favicon-64.png">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lexend+Peta:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+
+    <link rel="stylesheet" href="/css/valkyri-styles.css">
+    <link rel="stylesheet" href="/css/main.css">
+</head>
+<body><header>
+  <style>
+     
+     header { 
+       padding-block: 7px;  
+       position: fixed;
+       top: 0;
+       left: 0;
+       right: 0;
+       width: 100%;
+       z-index: 1000;
+       margin: 0;
+       background: rgba(0, 0, 0, 1);  
+       backdrop-filter: blur(10px);
+     }
+    nav.container { 
+      display: flex; 
+      align-items: center; 
+      justify-content: space-between; 
+      padding: 6px 20px;
+      margin: 0;
+    }
+
+    .logo { 
+      display: flex; 
+      align-items: center; 
+      gap: 8px; 
+      text-decoration: none; 
+      color: white;
+      padding-left: 15%;
+    }
+    .logo img { width: 48px; height: 48px; }
+    .logo span { 
+      font-weight: 700; 
+      font-size: 1.2rem;
+      color: white;
+    }
+
+    .nav-center { display: flex; }
+    .nav-center .nav-links { 
+      display: flex; 
+      gap: 1rem; 
+      align-items: center; 
+      margin: 0; 
+      padding: 0; 
+      list-style: none;
+    }
+    
+     
+    nav > .nav-links {
+      display: none;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    .nav-links a { 
+      display: inline-block; 
+      padding: 6px 12px; 
+      font-size: 0.9rem; 
+      text-decoration: none; 
+      color: white;
+      transition: color 0.3s ease;
+    }
+    .nav-links a:hover {
+      color: #9d3d8f;
+    }
+
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      cursor: pointer;
+      gap: 4px;
+      padding: 8px;
+      z-index: 1001;
+      background: none;
+      border: none;
+    }
+
+    .hamburger span {
+      width: 25px;
+      height: 3px;
+      background: white;
+      transition: all 0.3s ease;
+      border-radius: 2px;
+    }
+
+     
+    .cta-button {
+      display: inline-block;
+      padding: 12px 24px;                       
+      background: linear-gradient(90deg, #9d3d8f 0%, #8a2f79 100%);  
+      color: #fff;
+      font-weight: 600;
+      border-radius: 8px;
+      box-shadow: 0 6px 18px rgba(157,61,143,0.18), 0 0 0 6px rgba(157,61,143,0.04);
+      text-decoration: none;
+      border: 1px solid rgba(255,255,255,0.06);
+      transition: transform .12s ease, box-shadow .12s ease, filter .12s ease;
+      font-size: 0.9rem;
+    }
+     
+    .cta-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 24px rgba(157,61,143,0.22), 0 0 0 8px rgba(157,61,143,0.06);
+      filter: none;
+      opacity: 1;
+    }
+    .cta-button:active { transform: translateY(0); box-shadow: 0 6px 18px rgba(157,61,143,0.18); }
+
+     
+    @media (max-width: 768px) {
+      header { padding-block: 4px; }
+      .logo img { width:44px; height:44px; }
+      .logo span { font-size: 1.1rem; }
+      
+      .nav-center {
+        display: none;
+      }
+      
+      .hamburger {
+        display: flex;
+      }
+      
+       
+      nav > .nav-links {
+        display: flex;
+        position: fixed;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.95);
+        backdrop-filter: blur(10px);
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        gap: 2rem;
+        transition: left 0.3s ease;
+        z-index: 1000;
+      }
+      
+      nav > .nav-links.active {
+        left: 0;
+      }
+      
+      .nav-links a {
+        color: white;
+        font-size: 1.2rem;
+        padding: 1rem 2rem;
+        border-radius: 8px;
+        transition: background 0.3s ease;
+      }
+      
+      .nav-links a:hover {
+        background: rgba(157, 61, 143, 0.2);
+      }
+      
+      .hamburger.active span:nth-child(1) {
+        transform: rotate(45deg) translate(5px, 5px);
+        background: white;
+      }
+      
+      .hamburger.active span:nth-child(2) {
+        opacity: 0;
+      }
+      
+      .hamburger.active span:nth-child(3) {
+        transform: rotate(-45deg) translate(7px, -6px);
+        background: white;
+      }
+      
+      .cta-button { padding: 10px 18px; font-size: 0.85rem; }  
+    }
+  </style>
+
+  <nav class="container">
+      <a href="http://localhost:1313/" class="logo">
+          <img src="/logo.png" alt="Valkyri Security Logo" width="48" height="48" loading="eager">
+          <span>VALKYRI</span>
+      </a>
+      <div class="nav-center">
+          <ul class="nav-links">
+              <li><a href="https://valkyri.xyz/#services">Services</a></li>
+              <li><a href="https://valkyri.xyz/#certifications">Certifications</a></li>
+              <li><a href="https://valkyri.xyz/#process">Process</a></li>
+              <li><a href="https://blog.valkyri.xyz">Blog</a></li>
+              <li><a href="https://valkyri.xyz/#contact" class="cta-button">Request Quote</a></li>
+          </ul>
+      </div>
+      <ul class="nav-links">
+          <li><a href="https://valkyri.xyz/#services">Services</a></li>
+          <li><a href="https://valkyri.xyz/#certifications">Certifications</a></li>
+          <li><a href="https://valkyri.xyz/#process">Process</a></li>
+          <li><a href="https://valkyri.xyz/https://blog.valkyri.xyz">Blog</a></li>
+          <li><a href="https://valkyri.xyz/#contact" class="cta-button">Request Quote</a></li>
+      </ul>
+      <div class="hamburger">
+          <span></span>
+          <span></span>
+          <span></span>
+      </div>
+  </nav>
+</header><main class="max-w-7xl mx-auto px-4 md:px-6 lg:px-8"><div id="breadcrumb" class="max-w-7xl mx-auto py-8">
+	<ul class="flex space-x-4 text-sm text-zinc-500">
+		<li class="after:content-['❯'] after:ml-4 after:opacity-30 last:after:content-none uppercase">
+			<a href="http://localhost:1313/">VALKYRI</a>
+		</li>
+		<li class="after:content-['❯'] after:ml-4 after:opacity-30 last:after:content-none uppercase">
+			<a href="http://localhost:1313/posts/">Posts</a>
+		</li>
+	</ul>
+</div><div class="max-w-6xl mx-auto mb-4 px-8">
+  <div id="top-of-site-pixel-anchor"></div>
+  
+  
+  <div class="flex flex-col lg:flex-row gap-6 justify-between items-start"> 
+    
+    <main class="flex-1 max-w-3xl mx-auto"> 
+      <article class="prose lg:prose-base mx-auto"> 
+        <div class="post-header not-prose mb-3"> 
+          <h1 id="title" class="text-4xl font-bold leading-normal mb-2">Beyond the Contract, Part 1 : The Hack That Didn’t Exploit a Smart-Contract Bug</h1>
+          <div id="lead" class="my-2"> 
+            <p>Case study of the Ronin Network hack and the theft of 173,600 ETH and 25.5M USDC roughly $540 million at the moment of the attack</p>
+          </div>
+          <div id="writer" class="flex items-center space-x-4">
+                  <div class="flex items-center space-x-3">
+                      <img class="w-12 h-12 bg-black rounded-full" src="http://localhost:1313/alix40.png" alt="Alix40 avatar" width="400" height="400">
+                    <div class="flex flex-col">
+                      <span class="font-semibold text-gray-900">Alix40</span>
+                    </div>
+                  </div>
+            <div class="flex items-center space-x-4 ml-auto">
+              <span class="before:content-['•'] before:mr-2 before:opacity-50 text-gray-600"><time datetime="2025-09-10T00:49:28&#43;06:00">September 10, 2025</time>
+              </span>
+              <span class="before:content-['•'] before:mr-2 before:opacity-50 text-gray-600">
+                4 min read
+              </span>
+            </div>
+          </div>
+        </div>
+
+    <aside class="lg:block w-72 flex-shrink-0">
+      <div class="sticky top-24">
+        <div class="max-h-[calc(100vh-6rem)] overflow-y-auto bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+          <h2 class="text-base font-semibold mb-4 text-gray-900">Table of Contents</h2>
+          <nav class="text-sm space-y-3">
+            <div class="[&>ul]:list-none [&>ul]:pl-0 
+                 [&>ul>ul]:pl-4 [&>ul>ul]:mt-2 [&>ul>ul]:border-l [&>ul>ul]:border-gray-200
+                 [&_li]:mb-2 [&_li]:leading-relaxed
+                 [&_a]:block [&_a]:text-gray-700 [&_a]:no-underline [&_a]:transition-all
+                 [&_a:hover]:text-black [&_a:hover]:bg-gray-50 [&_a:hover]:pl-2 [&_a:hover]:rounded
+                 [&_a.active]:text-black [&_a.active]:font-medium [&_a.active]:bg-gray-100 [&_a.active]:px-2 [&_a.active]:rounded">
+              <nav id="TableOfContents">
+  <ul>
+    <li><a href="#the-case-study-a-job-offer-too-good-to-be-true">The Case Study: A Job Offer Too Good to Be True</a>
+      <ul>
+        <li><a href="#the-story">The Story</a></li>
+      </ul>
+    </li>
+    <li><a href="#the-technical-vector-what-actually-happened">The Technical Vector (What Actually Happened)</a></li>
+    <li><a href="#how-fullstack-security-could-have-prevented-this">How Full‑Stack Security Could Have Prevented This</a>
+      <ul>
+        <li><a href="#1-humanlayer-security">1) Human‑Layer Security</a></li>
+        <li><a href="#2-zerotrust-architecture">2) Zero‑Trust Architecture</a></li>
+        <li><a href="#3-key-management--authorization-governance">3) Key Management &amp; Authorization Governance</a></li>
+        <li><a href="#4-monitoring--response">4) Monitoring &amp; Response</a></li>
+      </ul>
+    </li>
+    <li><a href="#takeaway">Takeaway</a></li>
+    <li><a href="#references--further-reading">References &amp; Further Reading</a></li>
+  </ul>
+</nav>
+            </div>
+          </nav>
+        </div>
+      </div>
+    </aside>
+    
+    
+        <figure id="featureimage" class="rounded-xl aspect-video mx-auto"> 
+            <img class="w-full h-full object-cover" src="http://localhost:1313/images/ronin-network_hu475b61cec671e65282a299747c38a9e1_700186_500x0_resize_q85_box_3.png" alt="Beyond the Contract, Part 1 : The Hack That Didn’t Exploit a Smart-Contract Bug featured image" width="500" height="317" loading="lazy">
+            </figure>
+        <div class="entry-content mx-auto"> 
+          <p>In Web3, we obsess over smart contract security—audits, bounties, line-by-line code reviews. That’s essential, but it can also create a dangerous blind spot. We’re so focused on the fortress walls that we forget to lock the front door.</p>
+<p><strong>What if one of the biggest DeFi heists didn’t involve a smart-contract bug at all?</strong></p>
+<p>That’s the story of the <strong>Ronin Network</strong> and the theft of <strong>173,600 ETH and 25.5M USDC</strong>—roughly <strong>$540M at the moment of the attack on March 23, 2022</strong>, and about <strong>$615–$625M by the time it was disclosed on March 29, 2022</strong>. The lesson: a project’s biggest vulnerability often isn’t in its code, but in its <strong>people and processes</strong>. <a href="https://www.reuters.com/technology/blockchain-company-ronin-hit-by-615-million-crypto-heist-2022-03-29/">Reuters</a></p>
+<hr>
+<h2 id="the-case-study-a-job-offer-too-good-to-be-true">The Case Study: A Job Offer Too Good to Be True</h2>
+<p>The attack has been <strong>attributed by the U.S. Treasury to North Korea’s Lazarus Group</strong>. According to Sky Mavis’s own post‑mortem, <strong>one employee was compromised via spear‑phishing</strong>, which enabled the attackers to reach internal systems. Multiple outlets reported that the initial lure was a <strong>fake LinkedIn job offer containing a malware‑laced PDF</strong> sent to an engineer—an example of social engineering, not a blockchain bug.<br>
+<strong>Sources:</strong> <a href="https://roninchain.com/blog/posts/back-to-building-ronin-security-breach-6513cc78a5edc1001b03c364">Sky Mavis post‑mortem</a>, <a href="https://home.treasury.gov/news/press-releases/jy0768">U.S. Treasury</a>, <a href="https://www.theblock.co/post/156038/how-a-fake-job-offer-took-down-the-worlds-most-popular-crypto-game">The Block</a>, <a href="https://thehackernews.com/2022/07/hackers-used-fake-job-offer-to-hack-and.html">The Hacker News</a></p>
+<h3 id="the-story">The Story</h3>
+<ul>
+<li><strong>Timeline:</strong> The breach occurred <strong>March 23, 2022</strong> and was <strong>discovered March 29, 2022</strong>.</li>
+<li><strong>Entry:</strong> A Sky Mavis employee was <strong>spear‑phished</strong>; the intruders then used that access to pivot through internal systems.</li>
+<li><strong>Attribution:</strong> U.S. authorities later linked the operation to the <strong>Lazarus Group</strong>.</li>
+</ul>
+<p><strong>Sources:</strong> <a href="https://roninchain.com/blog/posts/back-to-building-ronin-security-breach-6513cc78a5edc1001b03c364">Post‑mortem</a>, <a href="https://home.treasury.gov/news/press-releases/jy0768">U.S. Treasury</a></p>
+<hr>
+<h2 id="the-technical-vector-what-actually-happened">The Technical Vector (What Actually Happened)</h2>
+<p>Ronin used a <strong>proof‑of‑authority</strong> design in which a small set of validators authorize bridge withdrawals. At the time, <strong>9 validators</strong> existed and <strong>5 signatures</strong> were required to move funds from the bridge.</p>
+<ul>
+<li>The attackers gained control of <strong>4 Sky Mavis validator keys</strong>.</li>
+<li>For the fifth signature, they <strong>didn’t find a stray key on a forgotten server</strong>. Instead, they <strong>abused an unrevoked allowlist from November 2021</strong>: during a period of explosive growth, the <strong>Axie DAO validator</strong> had allowlisted Sky Mavis to sign on its behalf to support <strong>gas‑free transactions</strong>. Although that program ended in December 2021, the allowlist <strong>wasn’t revoked</strong>.</li>
+<li>Using a <strong>gas‑free RPC</strong> backdoor tied to that allowlist, the attackers obtained the <strong>Axie DAO validator’s signature</strong>, giving them <strong>5 of 9</strong> approvals.</li>
+<li>They then executed <strong>two bridge‑withdrawal transactions</strong> draining <strong>173,600 ETH and 25.5M USDC</strong>.</li>
+</ul>
+<p><strong>Sources:</strong> <a href="https://roninchain.com/blog/posts/back-to-building-ronin-security-breach-6513cc78a5edc1001b03c364">Post‑mortem (validator design, allowlist, gas‑free RPC, two transactions)</a></p>
+<blockquote>
+<p>Bottom line: <strong>No base‑layer cryptography was broken and no smart‑contract bug was exploited</strong>. The attackers used <strong>valid signatures</strong> obtained through compromised systems and <strong>lingering authorization</strong>.</p>
+</blockquote>
+<hr>
+<h2 id="how-fullstack-security-could-have-prevented-this">How Full‑Stack Security Could Have Prevented This</h2>
+<p>Let’s be clear: <strong>no smart‑contract audit alone would have stopped this.</strong> This was an <strong>operational and infrastructure</strong> failure.</p>
+<p>At <strong>Valkyri Sec</strong>, we take a full‑stack view. Here’s how defenses map to this exact kill chain:</p>
+<h3 id="1-humanlayer-security">1) Human‑Layer Security</h3>
+<ul>
+<li><strong>Targeted spear‑phishing simulations</strong> for engineers and ops.</li>
+<li><strong>Document detonation/sandboxing</strong> for all external PDFs and office files.</li>
+<li><strong>Least‑privilege SSO</strong> with device posture checks; <strong>work‑only, hardened endpoints</strong>.</li>
+<li><strong>Clear playbooks</strong> for unsolicited recruiter outreach and file handling.<br>
+<em>Source: post‑mortem confirms spear‑phishing of an employee.</em></li>
+</ul>
+<h3 id="2-zerotrust-architecture">2) Zero‑Trust Architecture</h3>
+<ul>
+<li>Assume any device could be compromised. <strong>Segment</strong> critical signing infrastructure onto isolated networks/VPCs and separate identity domains.</li>
+<li><strong>MFA + device posture + just‑in‑time (JIT) access</strong> for any action that can touch validators or bridge backends.</li>
+<li><strong>Human‑in‑the‑loop approvals</strong> and <strong>withdrawal thresholds</strong> for large bridge transactions.</li>
+</ul>
+<h3 id="3-key-management--authorization-governance">3) Key Management &amp; Authorization Governance</h3>
+<ul>
+<li>Store validator/bridge keys in <strong>HSMs or MPC wallets</strong> with <strong>policy‑based approvals</strong> (per‑tx limits, rate‑limits, geo/IP restrictions).</li>
+<li>Treat <strong>allowlists and backdoors as high‑risk</strong>: apply <strong>automated expiry</strong>, <strong>change management</strong>, and <strong>continuous reconciliation</strong> to ensure temporary permissions are revoked.</li>
+<li><strong>Comprehensive logging and real‑time alerting</strong> for any access attempt to key material or signing endpoints.</li>
+<li><strong>Anomaly detection on bridge flows</strong> and <strong>automatic pause switches</strong> for unusual withdrawal patterns.</li>
+</ul>
+<h3 id="4-monitoring--response">4) Monitoring &amp; Response</h3>
+<ul>
+<li><strong>Large‑outflow detectors</strong> with on‑call escalation (the post‑mortem notes the lack of a proper tracking system delayed discovery).</li>
+<li><strong>Runbooks</strong> for bridge shutdown, withdrawal halts, and incident communications.</li>
+</ul>
+<hr>
+<h2 id="takeaway">Takeaway</h2>
+<p>Your project isn’t just code on a blockchain; it’s a living system of people, cloud services, front‑ends, and privileged infrastructure. <strong>Securing the contract is only step one.</strong></p>
+<hr>
+<h2 id="references--further-reading">References &amp; Further Reading</h2>
+<ul>
+<li>
+<p><strong>Sky Mavis / Ronin:</strong> “Back to Building: Ronin Security Breach Postmortem” — validator design, 5‑of‑9, allowlist, gas‑free RPC, two transactions, dates.<br>
+<a href="https://roninchain.com/blog/posts/back-to-building-ronin-security-breach-6513cc78a5edc1001b03c364">https://roninchain.com/blog/posts/back-to-building-ronin-security-breach-6513cc78a5edc1001b03c364</a></p>
+</li>
+<li>
+<p><strong>Reuters:</strong> “Blockchain project Ronin hit by $615 million crypto heist” — token counts, USD value at time vs. disclosure.<br>
+<a href="https://www.reuters.com/technology/blockchain-company-ronin-hit-by-615-million-crypto-heist-2022-03-29/">https://www.reuters.com/technology/blockchain-company-ronin-hit-by-615-million-crypto-heist-2022-03-29/</a></p>
+</li>
+<li>
+<p><strong>U.S. Treasury (OFAC):</strong> Press release attributing the heist to Lazarus Group and detailing sanctions actions.<br>
+<a href="https://home.treasury.gov/news/press-releases/jy0768">https://home.treasury.gov/news/press-releases/jy0768</a></p>
+</li>
+<li>
+<p><strong>The Block:</strong> “How a fake job offer took down the world’s most popular crypto game” — social‑engineering job‑offer reporting.<br>
+<a href="https://www.theblock.co/post/156038/how-a-fake-job-offer-took-down-the-worlds-most-popular-crypto-game">https://www.theblock.co/post/156038/how-a-fake-job-offer-took-down-the-worlds-most-popular-crypto-game</a></p>
+</li>
+<li>
+<p><strong>The Hacker News:</strong> “Hackers Used Fake Job Offer to Hack and Steal $540 Million from Axie Infinity” — social‑engineering reporting.<br>
+<a href="https://thehackernews.com/2022/07/hackers-used-fake-job-offer-to-hack-and.html">https://thehackernews.com/2022/07/hackers-used-fake-job-offer-to-hack-and.html</a></p>
+</li>
+</ul>
+
+        </div>
+
+        
+      </article>
+    </main>
+
+    
+    
+  </div>
+</div>
+</main>
+  <footer class="bg-zinc-100 py-10 md:py-14"><div class="container">
+    <div class="footer-content">
+        <div class="footer-section">
+            <h3 style="font-family: 'Lexend Peta', 'Roboto', 'Helvetica', 'Arial', sans-serif; font-weight: 700;">VALKYRI</h3>
+            <p style="padding-right: 4rem;">End-to-end Security built from the ground up - infrastructure, on-chain, and every layer in between</p>
+        </div>
+        <div class="footer-section">
+            <h3>Our Services</h3>
+            <ul style="list-style: none; color: var(--text-gray);">
+                <li><a href="https://valkyri.xyz/#services" style="color: var(--text-gray); text-decoration: none;">Infrastructure Security</a></li>
+                <li><a href="https://valkyri.xyz/#services" style="color: var(--text-gray); text-decoration: none;">Wallet Security</a></li>
+                <li><a href="https://valkyri.xyz/#services" style="color: var(--text-gray); text-decoration: none;">Smart Contract Audit</a></li>
+                <li><a href="https://valkyri.xyz/#services" style="color: var(--text-gray); text-decoration: none;">Mobile Application Pentest</a></li>
+            </ul>
+        </div>
+        <div class="footer-section">
+            <h3>Connect</h3>
+            <div class="social-links">
+                <a href="https://t.me/ValkyriSecurity" title="Telegram"><img src="/connect/telegram.png" alt="Telegram" width="20" height="20"></a>
+                <a href="https://x.com/ValkyriSecurity" title="Twitter"><img src="/connect/x.png" alt="X" width="20" height="20"></a>
+                <a href="mailto:contact@valkyri.xyz" title="Email"><img src="/connect/email.png" alt="Email" width="20" height="20"></a>
+            </div>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <p>&copy; 2025 Valkyri Security. All rights reserved.</p>
+    </div>
+</div></footer>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const hamburger = document.querySelector('.hamburger');
+    const navLinks = document.querySelector('nav > .nav-links'); 
+    
+    if (hamburger && navLinks) {
+        hamburger.addEventListener('click', function() {
+            navLinks.classList.toggle('active');
+            hamburger.classList.toggle('active');
+        });
+        
+        
+        document.querySelectorAll('nav > .nav-links a').forEach(link => {
+            link.addEventListener('click', () => {
+                navLinks.classList.remove('active');
+                hamburger.classList.remove('active');
+            });
+        });
+        
+        
+        document.addEventListener('click', function(event) {
+            if (!hamburger.contains(event.target) && !navLinks.contains(event.target)) {
+                navLinks.classList.remove('active');
+                hamburger.classList.remove('active');
+            }
+        });
+    }
+});
+</script>
+</body>
+</html>
